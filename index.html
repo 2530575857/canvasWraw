@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="" content="">
+    <title></title>
+    <style media="screen">
+      *{padding: 0;margin: 0}
+      #canvas{
+        border:1px solid #ccc;
+        margin: 30px 10px;
+        /* padding: 10px; */
+        /* background:#f00; */
+      }
+      body{
+        background-color:white;
+      }
+    </style>
+    <script>
+    var deviceWidth = parseInt(window.screen.width);  //获取当前设备的屏幕宽度
+    var deviceScale = deviceWidth / 640;  //得到当前设备屏幕与640之间的比例，之后我们就可以将网页宽度固定为640px
+    var ua = navigator.userAgent;
+    //获取当前设备类型（安卓或苹果）
+    if (/Android (\d+\.\d+)/.test(ua)) {
+        var version = parseFloat(RegExp.$1);
+        console.log(RegExp.$1);
+        if (version > 2.3) {
+            document.write('<meta name="viewport" content="width=640,initial-scale=' + deviceScale + ', minimum-scale = ' + deviceScale + ', maximum-scale = ' + deviceScale + ', target-densitydpi=device-dpi">');
+        } else {
+            document.write('<meta name="viewport" content="width=640,initial-scale=0.75,maximum-scale=0.75,minimum-scale=0.75,target-densitydpi=device-dpi" />');
+        }
+    } else {
+        document.write('<meta name="viewport" content="width=640, user-scalable=no">');
+    }
+</script>
+  </head>
+  <body>
+    <input type="color" name="canvasColor" >
+    <button type="button" name="canvasClear">canvasClear</button>
+    <button type="button" name="pen">画笔</button>
+    <br/>
+    <canvas id="canvas" width="500" height="500">
+      你的浏览器版本太低了，需要升级浏览器版本才能展示canvas的内容;
+    </canvas>
+
+    <script type="text/javascript">
+      window.onload=function(){
+        var canvas = document.getElementById("canvas");
+        var canvasColor = document.getElementsByName("canvasColor")[0];
+        var canvasClear =document.getElementsByName("canvasClear")[0];
+        var pen = document.getElementsByName("pen")[0];
+        var penActive =true;
+        var ctx=canvas.getContext("2d");
+        if (isMobile() ) {
+          canvas.addEventListener('touchstart',down,false);
+        }else{
+          canvas.addEventListener("mousedown",down,false);
+        }
+        function down (e){
+          e=e||window.event;
+          var offsetTop = e.target.offsetTop;
+          var offsetLeft =e.target.offsetLeft;
+          var beginX=e.offsetX||Math.ceil(e.targetTouches[0].pageX-offsetLeft);
+          var beginY=e.offsetY||Math.ceil(e.targetTouches[0].pageY-offsetTop);
+          var color =canvasColor.value;
+          ctx.globalCompositeOperation="source-over"
+          console.log(beginX);
+          function move(e){
+            e=e||window.event;
+
+            ctx.beginPath();
+            var currentX =e.offsetX||Math.ceil(e.targetTouches[0].pageX-offsetLeft);
+            var currentY =e.offsetY||Math.ceil(e.targetTouches[0].pageY-offsetTop);
+            if(penActive){
+              ctx.moveTo(beginX,beginY);
+              ctx.lineTo(currentX,currentY);
+              ctx.strokeStyle=color;
+              ctx.stroke();
+            }else {
+              ctx.globalCompositeOperation = 'destination-out'
+              ctx.beginPath();
+              ctx.arc(currentX, currentY, 50, 0, Math.PI * 2, true);
+              // ctx.clearRect(0,0,canvas.width,canvas.height);
+              ctx.fill();
+            }
+            beginX=currentX;
+            beginY=currentY;
+          }
+          function up(){
+            beginX=0;
+            beginY=0;
+            canvas.removeEventListener("mousemove",move,false);
+            canvas.removeEventListener("mouseup",up,false);
+            canvas.removeEventListener("touchmove",move,false);
+            canvas.removeEventListener("touchend",up,false);
+          }
+          if(isMobile()){
+            canvas.addEventListener("touchmove",move,false);
+            canvas.addEventListener("touchend ",up,false);
+          }else{
+            canvas.addEventListener("mousemove",move,false);
+            canvas.addEventListener("mouseup",up,false);
+          }
+
+        }
+        canvasClear.onclick=function(){
+          penActive=false;
+        }
+        pen.onclick =function(){
+          penActive=true;
+        }
+        function isMobile() {
+           if ((navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)))
+               return true;
+           else
+               return false;
+         }
+
+      }
+    </script>
+
+  </body>
+</html>
